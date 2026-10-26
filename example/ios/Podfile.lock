@@ -1,0 +1,28 @@
+PODS:
+  - daylight_camera (0.1.0):
+    - Flutter
+  - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - daylight_camera (from `.symlinks/plugins/daylight_camera/ios`)
+  - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+EXTERNAL SOURCES:
+  daylight_camera:
+    :path: ".symlinks/plugins/daylight_camera/ios"
+  Flutter:
+    :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+
+SPEC CHECKSUMS:
+  daylight_camera: 3d8b1cb53e54507aa3cab107588772161d43744d
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+
+PODFILE CHECKSUM: f33ed30d7d857419eae96b22f2256491591f5e6a
+
+COCOAPODS: 1.16.2

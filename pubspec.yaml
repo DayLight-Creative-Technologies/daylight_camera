@@ -1,0 +1,29 @@
+name: daylight_camera
+description: "Native-grade camera plugin for SocialScoreKeeper: AVFoundation on iOS, CameraX on Android, one Pigeon contract."
+version: 0.1.0
+homepage: https://github.com/DayLight-Creative-Technologies/daylight_camera
+repository: https://github.com/DayLight-Creative-Technologies/daylight_camera
+publish_to: none
+
+environment:
+  sdk: ^3.13.4
+  flutter: ">=3.47.5"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  pigeon: 29.0.4
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: tech.daylightcreative.daylight_camera
+        pluginClass: DaylightCameraPlugin
+      ios:
+        pluginClass: DaylightCameraPlugin

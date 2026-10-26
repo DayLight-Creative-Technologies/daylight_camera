@@ -1,0 +1,122 @@
+# Every job here is required (REQ-CAMERA-2026-001-064). SocialScoreKeeper's
+# gate #72 (scripts/check_daylight_camera_pin.py) refuses to pin a commit
+# unless each job below, by its `name`, has a successful check run on it —
+# renaming a job means updating that gate's list in the same change.
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.47.5"
+
+jobs:
+  analyze:
+    name: Dart analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - run: flutter pub get
+      - run: flutter pub get
+        working-directory: example
+      - run: dart analyze --fatal-infos
+
+  pigeon_sync:
+    name: Pigeon sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - run: flutter pub get
+      - run: tool/test_check_pigeon_sync.sh
+      - run: tool/check_pigeon_sync.sh
+
+  lifecycle:
+    name: No lifecycle stop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: tool/test_check_no_lifecycle_stop.sh
+      - run: tool/check_no_lifecycle_stop.sh
+
+  riverpod_scanner:
+    name: Riverpod scanner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install riverpod-3-scanner==1.17.1
+      - run: python -m riverpod_3_scanner lib
+
+  flutter_test:
+    name: Flutter test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - run: flutter pub get
+      - run: flutter test
+
+  ios_xctest:
+    name: iOS XCTest
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build ios --config-only --simulator --debug
+        working-directory: example
+      - name: Run the example app's XCTest target on an iOS Simulator
+        working-directory: example/ios
+        run: |
+          udid="$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          for runtime in sorted(devices, reverse=True):
+              if "iOS" not in runtime:
+                  continue
+              for device in devices[runtime]:
+                  if device["name"].startswith("iPhone"):
+                      print(device["udid"])
+                      sys.exit(0)
+          sys.exit("no available iPhone simulator")
+          ')"
+          xcodebuild test -workspace Runner.xcworkspace -scheme Runner \
+            -destination "id=$udid" -only-testing:RunnerTests
+
+  android_unit:
+    name: Android unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build apk --config-only
+        working-directory: example
+      # The plugin module's tests only: the unqualified task also runs the
+      # Flutter SDK's integration_test module tests, which are not this repo's.
+      - run: ./gradlew :daylight_camera:testDebugUnitTest
+        working-directory: example/android
